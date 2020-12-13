@@ -1,0 +1,8 @@
+create table codes
+   (
+   code_id int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+   code varchar(6) NOT NULL,
+   startdate DATE NOT NULL,
+   enddate DATE NOT NULL
+   );
+
