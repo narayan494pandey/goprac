@@ -3,23 +3,20 @@
 <html>
     <head>
     <link href="./styles.css" rel="stylesheet">
-     <script type="text/javascript">
-        function makeTableScroll() {
-            var maxRows = 10;
-            var table = document.getElementById('myTable');
-            var wrapper = table.parentNode;
-            var rowsInTable = table.rows.length;
-            var height = 0;
-            if (rowsInTable > maxRows) {
-                for (var i = 0; i < maxRows; i++) {
-                    height += table.rows[i].clientHeight;
-                }
-                wrapper.style.height = height + "px";
-            }
-        }
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+          $("#myInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#myTable tr").filter(function() {
+               $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+          });
+        });
     </script>
+    
     </head>
-    <body onload="makeTableScroll();">
+    <body>
         <div class="container">
             <div class="header">
                 <div class="header__logo">
@@ -66,7 +63,7 @@
                                 </li> 
                             </div>    
                     </div>
-                    <div>
+                   <div>
                         <a href="https://goprac.com/why-practice" target="_self" class="header__link">
                             <img src="https://goprac.com/images/practice.png" />
                             WHY PRACTICE</a>
@@ -114,34 +111,76 @@
 	            if (!$conn) {
 		            die("connection failed:".mysqli_connect_error());
 	            }
+	             else {  
+                    mysqli_select_db($conn, 'pagination');  
+                } 
+              
+                $results_per_page = 50;  
+              
+                $query = "select *from codes";  
+                $result = mysqli_query($conn, $query);  
+                $number_of_result = mysqli_num_rows($result);  
+              
+                $number_of_page = ceil ($number_of_result / $results_per_page);  
+              
+                if (!isset ($_GET['page']) ) {  
+                    $page = 1;  
+                } else {  
+                    $page = $_GET['page'];  
+                }  
+              
+               
+                $page_first_result = ($page-1) * $results_per_page;  
+                
+                $query = "SELECT *FROM codes LIMIT " . $page_first_result . ',' . $results_per_page;  
+                $result = mysqli_query($conn, $query);  
+              
 	            ?>
 	            <?php
-                $result = mysqli_query($conn,"SELECT * FROM codes");
                 if (mysqli_num_rows($result) > 0) {
                 ?>  
                 <div class="scrollingTable">
-                  <table id="myTable">
-                  
+                    <h2>Filterable Table</h2>
+                    <input id="myInput" type="text" placeholder="Search..">
+                    <br><br>
+                  <table>
+                    
+                    <thead>
                       <tr>
                         <td>code_id</td>
                         <td>Code</td>
                         <td>StartDate</td>
                         <td>EndDate</td>
-                        <td>Action</td>
+                        <td>Delete</td>
+                        <td>Edit</td>
+                        
                       </tr>
+                      </thead>
                    <?php
-                    $i=0;
                     while($row = mysqli_fetch_array($result)) {
                     ?>
+                    <tbody id="myTable">
                     <tr>
                         <td><?php echo $row["code_id"]; ?></td>
                         <td><?php echo $row["code"]; ?></td>
                         <td><?php echo $row["startdate"]; ?></td>
                         <td><?php echo $row["enddate"]; ?></td>
-                        <td class="action"> <span>edit</span><span>delete</span></td>
+                    
+                        <td><form method='POST' action="delete.php">
+                                <input type=hidden name=code_id value="<?php echo $row["code_id"]; ?>" >
+                                <input type=submit value=Delete name=delete >
+                                </form>
+                        </td>
+                        <td>
+                            <form method='POST' action="edit.php">
+                                 <input type="text" placeholder="update value" name="code" maxlength="6">
+                                <input type=hidden name=code_id value="<?php echo $row["code_id"]; ?>" >
+                                <input type=submit value=update name=update >
+                            </form>
+                        </td>
                     </tr>
+                    </tbody>
                     <?php
-                    $i++;
                     }
                     ?>
                 </table>
@@ -151,11 +190,14 @@
                 else{
                     echo "No result found";
                 }
+                for($page = 1; $page<= $number_of_page; $page++) {  
+                    echo '<a href = "index.php?page=' . $page . '">' . $page . ' </a>';  
+                }  
                 mysqli_close($conn); 
                 ?>   
                </div>
     
-            <div class="footer">
+            <div class="fCodeCodeooter">
                 <div class="footer__upper">
                     <div class="footer__title">
                         <h2>GoPrac is an online practice platform</h2>
@@ -191,4 +233,9 @@
         </div>
 </body>
 </html>
+
+
+
+
+
 
